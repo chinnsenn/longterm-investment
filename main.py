@@ -26,15 +26,18 @@ def main():
     setup_logging()
     logger = logging.getLogger(__name__)
     
+    # Initialize notifier at the start
+    notifier = Notifier()
+    
     try:
-        # Validate configuration
-        Config.validate()
-        Config.ensure_directories()
+        # Instantiate and validate configuration
+        config = Config()
+        config.validate()
+        config.ensure_directories()
         
         # Initialize components
         market_schedule = MarketSchedule()
-        notifier = Notifier()
-        database = DatabaseManager(Config.DB_PATH)
+        database = DatabaseManager(config.DB_PATH)
         market_data = MarketData()
         ratio_calculator = QQQSPYRatioCalculator(database, market_data, notifier)
         strategy = Strategy()
@@ -69,13 +72,13 @@ def main():
                         notifier.send_telegram_notification(message)
                     
                     # Sleep for appropriate interval based on market hours
-                    update_interval = Config.get_update_interval()
+                    update_interval = config.get_update_interval()
                     logger.info(f"Sleeping for {update_interval} seconds...")
                     time.sleep(update_interval)
                 else:
                     # Sleep for retry interval when market is closed
                     logger.info("Market is closed. Sleeping for retry interval...")
-                    time.sleep(Config.RETRY_INTERVAL)
+                    time.sleep(config.RETRY_INTERVAL)
                     
             except Exception as e:
                 logger.error(f"Error in main loop: {str(e)}")

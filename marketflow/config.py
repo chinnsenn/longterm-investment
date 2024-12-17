@@ -11,7 +11,7 @@ class Config:
     
     def __init__(self):
         load_dotenv()
-        self.retry_interval = int(os.getenv('RETRY_INTERVAL', '300'))
+        self.RETRY_INTERVAL = int(os.getenv('RETRY_INTERVAL', '300'))
         
         # Paths
         self.BASE_DIR = Path(__file__).parent.parent

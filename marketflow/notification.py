@@ -14,6 +14,7 @@ class Notifier:
         self._last_notification = 0
         self._retry_count = 0
         self._logger = logging.getLogger(__name__)
+        self.config = Config()
         
         # 初始化日志格式
         logging.basicConfig(
@@ -24,27 +25,27 @@ class Notifier:
     def _can_send_notification(self) -> bool:
         """Check if enough time has passed since the last notification."""
         current_time = time.time()
-        if current_time - self._last_notification < Config.NOTIFICATION_COOLDOWN:
+        if current_time - self._last_notification < self.config.NOTIFICATION_COOLDOWN:
             self._logger.info("Notification cooldown in effect")
             return False
         return True
     
     def _validate_config(self) -> bool:
         """Validate notification configuration."""
-        if not hasattr(Config, 'NOTIFICATION_COOLDOWN'):
+        if not hasattr(self.config, 'NOTIFICATION_COOLDOWN'):
             self._logger.error("NOTIFICATION_COOLDOWN not configured")
             return False
-        if not hasattr(Config, 'ERROR_RETRY_COUNT'):
+        if not hasattr(self.config, 'ERROR_RETRY_COUNT'):
             self._logger.error("ERROR_RETRY_COUNT not configured")
             return False
-        if not hasattr(Config, 'RETRY_INTERVAL'):
+        if not hasattr(self.config, 'RETRY_INTERVAL'):
             self._logger.error("RETRY_INTERVAL not configured")
             return False
         return True
     
     def send_bark_notification(self, message: str, title: str = "Investment Alert") -> bool:
         """Send notification through Bark API."""
-        if not hasattr(Config, 'BARK_URL') or not hasattr(Config, 'BARK_API_KEY'):
+        if not hasattr(self.config, 'BARK_URL') or not hasattr(self.config, 'BARK_API_KEY'):
             self._logger.warning("Bark credentials not configured")
             return False
             
@@ -53,7 +54,7 @@ class Notifier:
             encoded_title = quote(title)
             encoded_body = quote(message)
             
-            url = f"{Config.BARK_URL}/{Config.BARK_API_KEY}/{encoded_title}/{encoded_body}"
+            url = f"{self.config.BARK_URL}/{self.config.BARK_API_KEY}/{encoded_title}/{encoded_body}"
             self._logger.info(f"Sending Bark notification: {message} - {title}")
             
             response = requests.get(url, timeout=10)  # 添加超时设置
@@ -74,7 +75,7 @@ class Notifier:
     
     def send_telegram_notification(self, message: str, title: str = "Investment Alert") -> bool:
         """Send notification through Telegram bot."""
-        if not hasattr(Config, 'TELEGRAM_BOT_TOKEN') or not hasattr(Config, 'TELEGRAM_CHAT_ID'):
+        if not hasattr(self.config, 'TELEGRAM_BOT_TOKEN') or not hasattr(self.config, 'TELEGRAM_CHAT_ID'):
             self._logger.warning("Telegram credentials not configured")
             return False
             
@@ -82,13 +83,13 @@ class Notifier:
             # Format message with title
             formatted_message = f"<b>{title}</b>\n\n{message}"
             
-            url = f"https://api.telegram.org/bot{Config.TELEGRAM_BOT_TOKEN}/sendMessage"
+            url = f"https://api.telegram.org/bot{self.config.TELEGRAM_BOT_TOKEN}/sendMessage"
             self._logger.info(f"Sending Telegram notification: {title} - {message}")
             
             response = requests.post(
                 url,
                 json={
-                    "chat_id": Config.TELEGRAM_CHAT_ID,
+                    "chat_id": self.config.TELEGRAM_CHAT_ID,
                     "text": formatted_message,
                     "parse_mode": "HTML"
                 },
@@ -114,7 +115,7 @@ class Notifier:
         if not self._validate_config():
             return False
             
-        if self._retry_count >= Config.ERROR_RETRY_COUNT:
+        if self._retry_count >= self.config.ERROR_RETRY_COUNT:
             self._logger.error("Max retry count reached, stopping notifications")
             return False
             
@@ -145,9 +146,9 @@ class Notifier:
         else:
             self._retry_count += 1
             self._logger.warning(f"Failed to send notification through any channel. Retry count: {self._retry_count}")
-            if retry and self._retry_count < Config.ERROR_RETRY_COUNT:
-                self._logger.info(f"Retrying in {Config.RETRY_INTERVAL} seconds...")
-                time.sleep(Config.RETRY_INTERVAL)
+            if retry and self._retry_count < self.config.ERROR_RETRY_COUNT:
+                self._logger.info(f"Retrying in {self.config.RETRY_INTERVAL} seconds...")
+                time.sleep(self.config.RETRY_INTERVAL)
                 return self.send_notification(message, title, retry=True)
             else:
                 self._logger.error("All notification attempts failed")

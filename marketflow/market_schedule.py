@@ -13,6 +13,7 @@ class MarketSchedule:
         self.market_close = time(16, 0)  # 4:00 PM ET
         # 使用 XNYS (New York Stock Exchange) 日历
         self.calendar = xcals.get_calendar('XNYS')
+        self.config = Config()
     
     def _get_current_et_time(self) -> datetime:
         """获取当前美东时间"""
@@ -21,7 +22,7 @@ class MarketSchedule:
     def is_market_open(self) -> bool:
         """检查美股市场是否开市"""
         # 如果不需要在市场开放时间内查询，则始终返回True
-        if not Config.ONLY_QUERY_DURING_MARKET_HOURS:
+        if not self.config.ONLY_QUERY_DURING_MARKET_HOURS:
             return True
             
         now = self._get_current_et_time()
