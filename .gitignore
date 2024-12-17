@@ -20,6 +20,11 @@ wheels/
 .installed.cfg
 *.egg
 
+# Virtual Environment
+.venv/
+venv/
+ENV/
+
 # Environment variables
 .env
 .env.local
@@ -44,4 +49,4 @@ Thumbs.db
 *.db
 *.sqlite3
 *.log
-。venv/
+coverage_report/
