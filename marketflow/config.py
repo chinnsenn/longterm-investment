@@ -28,7 +28,7 @@ class Config:
         self.NON_TRADING_UPDATE_INTERVAL = 1800  # 非交易时段每30分钟
         
         # API Keys
-        self.BARK_API_KEY = os.getenv('BARK_API_KEY', "9cMwKwGDnq3XE7Rr4JDEQM")
+        self.BARK_API_KEY = os.getenv('BARK_API_KEY', '')
         self.BARK_URL = os.getenv('BARK_URL', 'https://api.day.app')  # Bark server URL
         self.TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
         self.TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')

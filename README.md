@@ -19,8 +19,8 @@ A sophisticated market trend following trading system that implements an adaptiv
 
 1. Clone the repository:
 ```bash
-git clone [your-repo-url]
-cd marketflow
+git clone git@github.com:chinnsenn/longterm-investment.git
+cd longterm-investment
 ```
 
 2. Create and activate a virtual environment:
