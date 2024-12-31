@@ -60,18 +60,6 @@ def main():
                     qqq_rsi_status, qqq_overbought, qqq_oversold = market_data.get_rsi_status(qqq_rsi)
                     spy_rsi_status, spy_overbought, spy_oversold = market_data.get_rsi_status(spy_rsi)
                     
-                    ma_message = (
-                        "\n\n==========================="
-                        f"\n当前移动平均线:\n"
-                        f"QQQ 30日移动平均线: {qqq_ma30:.2f}\n"
-                        f"QQQ 50日移动平均线: {qqq_ma50:.2f}\n"
-                        f"SPY 50日移动平均线: {spy_ma50:.2f}\n"
-                        f"SPY 100日移动平均线: {spy_ma100:.2f}\n"
-                        f"\n当前RSI指标:\n"
-                        f"QQQ 14日RSI: {qqq_rsi:.2f} ({qqq_rsi_status})\n"
-                        f"SPY 14日RSI: {spy_rsi:.2f} ({spy_rsi_status})"
-                    )
-                    
                     # Check and update ratio data if needed
                     if not database.is_data_fresh(max_age_hours=24) or not database.has_data():
                         logger.info("Updating weekly ratio data...")
@@ -88,12 +76,40 @@ def main():
                         spy_ma_condition = strategy.check_spy_ma_condition()
                         strategy_position = strategy.evaluate_position(n_value, v_value, spy_ma_condition)
                         
-                        message = (
-                            f"当前策略建议持仓: {strategy_position.value}\n"
+                        # Format strategy message
+                        strategy_message = (
+                            "📊 投资策略分析\n"
+                            "==================\n"
+                            f"策略建议: {strategy_position.value}\n"
                             f"QQQ/SPY比值: {n_value:.4f}\n"
                             f"阈值: {v_value:.4f}\n"
-                            f"SPY均线条件: {'满足' if spy_ma_condition else '不满足'}"
-                        ) + ma_message
+                            f"SPY均线条件: {'✅ 满足' if spy_ma_condition else '❌ 不满足'}"
+                        )
+                        
+                        # Format moving average message
+                        ma_message = (
+                            "\n\n📈 移动平均线\n"
+                            "==================\n"
+                            "QQQ:\n"
+                            f"  MA30: {qqq_ma30:.2f}\n"
+                            f"  MA50: {qqq_ma50:.2f}\n"
+                            "SPY:\n"
+                            f"  MA50: {spy_ma50:.2f}\n"
+                            f"  MA100: {spy_ma100:.2f}"
+                        )
+                        
+                        # Format RSI message
+                        rsi_message = (
+                            "\n\n📉 RSI指标\n"
+                            "==================\n"
+                            f"QQQ (14日): {qqq_rsi:.1f} {qqq_rsi_status}\n"
+                            f"SPY (14日): {spy_rsi:.1f} {spy_rsi_status}"
+                        )
+                        
+                        # Combine all messages
+                        message = strategy_message + ma_message + rsi_message
+                        
+                        # Send notifications
                         notifier.send_bark_notification("投资策略更新", message)
                         notifier.send_telegram_notification(message)
                     
