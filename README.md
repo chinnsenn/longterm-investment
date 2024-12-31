@@ -49,6 +49,30 @@ Run the main application:
 python main.py
 ```
 
+## Docker Deployment
+
+1. Build the Docker image:
+```bash
+docker build -t marketflow .
+```
+
+2. Run the container:
+```bash
+docker run -d \
+  --name marketflow \
+  --restart unless-stopped \
+  -v $(pwd)/.env:/app/.env \
+  -v $(pwd)/data:/app/data \
+  marketflow
+```
+
+3. View logs:
+```bash
+docker logs -f marketflow
+```
+
+Note: Make sure to configure your `.env` file before building the Docker image.
+
 ## Configuration
 
 The system can be configured through the `.env` file:

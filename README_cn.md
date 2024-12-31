@@ -49,6 +49,30 @@ cp .env.example .env
 python main.py
 ```
 
+## Docker 部署
+
+1. 构建 Docker 镜像：
+```bash
+docker build -t marketflow .
+```
+
+2. 运行容器：
+```bash
+docker run -d \
+  --name marketflow \
+  --restart unless-stopped \
+  -v $(pwd)/.env:/app/.env \
+  -v $(pwd)/data:/app/data \
+  marketflow
+```
+
+3. 查看日志：
+```bash
+docker logs -f marketflow
+```
+
+注意：在构建 Docker 镜像之前，请确保已正确配置 `.env` 文件。
+
 ## 配置说明
 
 系统可以通过 `.env` 文件进行配置：
