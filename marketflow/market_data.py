@@ -257,3 +257,71 @@ class MarketData:
             
         except Exception as e:
             raise Exception(f"Error calculating moving average for {symbol}: {str(e)}")
+            
+    @staticmethod
+    def get_rsi(symbol: str, period: int = 14, days: int = 100) -> pd.Series:
+        """
+        Calculate the Relative Strength Index (RSI) for a given stock symbol.
+        
+        Args:
+            symbol (str): Stock symbol (e.g., 'AAPL')
+            period (int): RSI period (default: 14 days)
+            days (int): Number of days of historical data to fetch
+            
+        Returns:
+            pd.Series: RSI values series
+        """
+        try:
+            # Fetch historical data
+            today = datetime.now()
+            start_date = today - timedelta(days=days+period)
+            
+            ticker = yf.Ticker(symbol)
+            df = ticker.history(start=start_date, end=today)
+            
+            if df.empty:
+                raise ValueError(f"No data available for symbol {symbol}")
+            
+            # Calculate daily price changes
+            delta = df['Close'].diff()
+            
+            # Separate gains (up) and losses (down)
+            gain = (delta.where(delta > 0, 0))
+            loss = (-delta.where(delta < 0, 0))
+            
+            # Calculate average gains and losses over the specified period
+            avg_gain = gain.rolling(window=period).mean()
+            avg_loss = loss.rolling(window=period).mean()
+            
+            # Calculate RS (Relative Strength)
+            rs = avg_gain / avg_loss
+            
+            # Calculate RSI
+            rsi = 100 - (100 / (1 + rs))
+            
+            return rsi
+            
+        except Exception as e:
+            raise Exception(f"Error calculating RSI for {symbol}: {str(e)}")
+    
+    @staticmethod
+    def get_rsi_status(rsi: float, overbought_threshold: float = 70, oversold_threshold: float = 30) -> tuple[str, bool, bool]:
+        """
+        Get the RSI status indicating if it's in overbought or oversold territory.
+        
+        Args:
+            rsi (float): RSI value
+            overbought_threshold (float): Threshold for overbought condition (default: 70)
+            oversold_threshold (float): Threshold for oversold condition (default: 30)
+            
+        Returns:
+            tuple[str, bool, bool]: (Status message, is_overbought, is_oversold)
+        """
+        is_overbought = rsi >= overbought_threshold
+        is_oversold = rsi <= oversold_threshold
+        
+        if is_overbought:
+            return " 超买", True, False
+        elif is_oversold:
+            return " 超卖", False, True
+        return "正常", False, False

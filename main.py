@@ -52,13 +52,24 @@ def main():
                     spy_ma50 = market_data.get_moving_average('SPY', period=50).iloc[-1]
                     spy_ma100 = market_data.get_moving_average('SPY', period=100).iloc[-1]
                     
+                    # Get RSI values
+                    qqq_rsi = market_data.get_rsi('QQQ').iloc[-1]
+                    spy_rsi = market_data.get_rsi('SPY').iloc[-1]
+                    
+                    # Get RSI status
+                    qqq_rsi_status, qqq_overbought, qqq_oversold = market_data.get_rsi_status(qqq_rsi)
+                    spy_rsi_status, spy_overbought, spy_oversold = market_data.get_rsi_status(spy_rsi)
+                    
                     ma_message = (
                         "\n\n==========================="
                         f"\n当前移动平均线:\n"
                         f"QQQ 30日移动平均线: {qqq_ma30:.2f}\n"
                         f"QQQ 50日移动平均线: {qqq_ma50:.2f}\n"
                         f"SPY 50日移动平均线: {spy_ma50:.2f}\n"
-                        f"SPY 100日移动平均线: {spy_ma100:.2f}"
+                        f"SPY 100日移动平均线: {spy_ma100:.2f}\n"
+                        f"\n当前RSI指标:\n"
+                        f"QQQ 14日RSI: {qqq_rsi:.2f} ({qqq_rsi_status})\n"
+                        f"SPY 14日RSI: {spy_rsi:.2f} ({spy_rsi_status})"
                     )
                     
                     # Check and update ratio data if needed
