@@ -226,3 +226,34 @@ class MarketData:
             
         except Exception as e:
             raise Exception(f"Error checking ratio crossover: {str(e)}")
+    
+    @staticmethod
+    def get_moving_average(symbol: str, period: int = 20, days: int = 100) -> pd.Series:
+        """
+        Calculate the moving average for a given stock symbol and period.
+        
+        Args:
+            symbol (str): Stock symbol (e.g., 'AAPL')
+            period (int): Moving average period (e.g., 20 for 20-day MA)
+            days (int): Number of days of historical data to fetch
+            
+        Returns:
+            pd.Series: Moving average series
+        """
+        try:
+            # Fetch historical data
+            today = datetime.now()
+            start_date = today - timedelta(days=days+period)
+            
+            ticker = yf.Ticker(symbol)
+            df = ticker.history(start=start_date, end=today)
+            
+            if df.empty:
+                raise ValueError(f"No data available for symbol {symbol}")
+            
+            # Calculate moving average
+            ma = df['Close'].rolling(window=period).mean()
+            return ma
+            
+        except Exception as e:
+            raise Exception(f"Error calculating moving average for {symbol}: {str(e)}")

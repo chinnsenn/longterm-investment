@@ -46,6 +46,21 @@ def main():
         while True:
             try:
                 if market_schedule.is_market_open():
+                    # Get moving averages for QQQ and SPY
+                    qqq_ma30 = market_data.get_moving_average('QQQ', period=30).iloc[-1]
+                    qqq_ma50 = market_data.get_moving_average('QQQ', period=50).iloc[-1]
+                    spy_ma50 = market_data.get_moving_average('SPY', period=50).iloc[-1]
+                    spy_ma100 = market_data.get_moving_average('SPY', period=100).iloc[-1]
+                    
+                    ma_message = (
+                        "\n\n==========================="
+                        f"\n当前移动平均线:\n"
+                        f"QQQ 30日移动平均线: {qqq_ma30:.2f}\n"
+                        f"QQQ 50日移动平均线: {qqq_ma50:.2f}\n"
+                        f"SPY 50日移动平均线: {spy_ma50:.2f}\n"
+                        f"SPY 100日移动平均线: {spy_ma100:.2f}"
+                    )
+                    
                     # Check and update ratio data if needed
                     if not database.is_data_fresh(max_age_hours=24) or not database.has_data():
                         logger.info("Updating weekly ratio data...")
@@ -67,7 +82,7 @@ def main():
                             f"QQQ/SPY比值: {n_value:.4f}\n"
                             f"阈值: {v_value:.4f}\n"
                             f"SPY均线条件: {'满足' if spy_ma_condition else '不满足'}"
-                        )
+                        ) + ma_message
                         notifier.send_bark_notification("投资策略更新", message)
                         notifier.send_telegram_notification(message)
                     
