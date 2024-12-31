@@ -50,7 +50,12 @@ class Config:
                 - 交易时间：600秒（10分钟）
                 - 非交易时间且是交易日：3600秒（1小时）
                 - 非交易日：86400秒（24小时）
+                - 如果 ONLY_QUERY_DURING_MARKET_HOURS 为 False：3600秒（1小时）
         """
+        # 如果不限制只在交易时间查询，统一使用1小时间隔
+        if not self.ONLY_QUERY_DURING_MARKET_HOURS:
+            return 3600  # 1小时更新一次
+            
         current_time = datetime.now()
         
         # 检查是否是交易日（周一到周五）

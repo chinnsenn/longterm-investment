@@ -45,7 +45,7 @@ def main():
         # Main loop
         while True:
             try:
-                if market_schedule.is_market_open():
+                if market_schedule.is_market_open() or not config.ONLY_QUERY_DURING_MARKET_HOURS:
                     # Get moving averages for QQQ and SPY
                     qqq_ma30 = market_data.get_moving_average('QQQ', period=30).iloc[-1]
                     qqq_ma50 = market_data.get_moving_average('QQQ', period=50).iloc[-1]
