@@ -51,6 +51,8 @@ python main.py
 
 ## Docker Deployment
 
+### Using Docker
+
 1. Build the Docker image:
 ```bash
 docker build -t marketflow .
@@ -69,6 +71,23 @@ docker run -d \
 3. View logs:
 ```bash
 docker logs -f marketflow
+```
+
+### Using Docker Compose
+
+1. Start the application:
+```bash
+docker compose up -d
+```
+
+2. View logs:
+```bash
+docker compose logs -f
+```
+
+3. Stop the application:
+```bash
+docker compose down
 ```
 
 Note: Make sure to configure your `.env` file before building the Docker image.

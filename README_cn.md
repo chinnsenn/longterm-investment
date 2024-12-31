@@ -51,6 +51,8 @@ python main.py
 
 ## Docker 部署
 
+### 使用 Docker
+
 1. 构建 Docker 镜像：
 ```bash
 docker build -t marketflow .
@@ -69,6 +71,23 @@ docker run -d \
 3. 查看日志：
 ```bash
 docker logs -f marketflow
+```
+
+### 使用 Docker Compose
+
+1. 启动应用：
+```bash
+docker compose up -d
+```
+
+2. 查看日志：
+```bash
+docker compose logs -f
+```
+
+3. 停止应用：
+```bash
+docker compose down
 ```
 
 注意：在构建 Docker 镜像之前，请确保已正确配置 `.env` 文件。
