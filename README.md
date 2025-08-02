@@ -24,6 +24,38 @@ A sophisticated market trend following trading system that implements an adaptiv
 
 ## Installation
 
+### Option 1: Using UV (Recommended)
+
+UV is an extremely fast Python package manager that provides up to 80x faster dependency resolution.
+
+1. Install UV:
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+2. Clone the repository:
+```bash
+git clone git@github.com:chinnsenn/longterm-investment.git
+cd longterm-investment
+```
+
+3. Copy and configure environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your settings
+```
+
+4. Run with UV (automatically creates virtual environment and installs dependencies):
+```bash
+# Production mode
+./scripts/run.sh
+
+# Development mode
+./scripts/dev.sh
+```
+
+### Option 2: Using pip (Traditional)
+
 1. Clone the repository:
 ```bash
 git clone git@github.com:chinnsenn/longterm-investment.git
@@ -49,18 +81,43 @@ cp .env.example .env
 
 ## Usage
 
-Run the main application:
+### Using UV (Recommended)
 ```bash
+# Run in production mode
+./scripts/run.sh
+
+# Run in development mode with debug logging
+./scripts/dev.sh
+
+# Or run directly with uv
+uv run python main.py
+```
+
+### Using Traditional pip
+```bash
+# Activate virtual environment first
+source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
+
+# Run the application
 python main.py
+
+# Run with debug logging
+python main.py --debug
 ```
 
 ## Docker Deployment
+
+The project now uses UV for faster dependency management in Docker.
 
 ### Using Docker
 
 1. Build the Docker image:
 ```bash
+# Build production image
 docker build -t marketflow .
+
+# Build development image with dev dependencies
+docker build --target development -t marketflow:dev
 ```
 
 2. Run the container:
@@ -78,22 +135,43 @@ docker run -d \
 docker logs -f marketflow
 ```
 
-### Using Docker Compose
+### Using Docker Compose (Recommended)
 
-1. Start the application:
+1. Start the production application:
 ```bash
 docker compose up -d
 ```
 
-2. View logs:
+2. Start the development environment (with hot-reload capabilities):
+```bash
+docker compose --profile dev up -d
+```
+
+3. View logs:
 ```bash
 docker compose logs -f
 ```
 
-3. Stop the application:
+4. Stop the application:
 ```bash
 docker compose down
 ```
+
+### Docker Log Management
+
+Log files are written to the host's `./logs` directory for persistence and troubleshooting:
+
+- Host log directory: `./logs/investment.log`
+- Container log path: `/app/logs/investment.log`
+- Logs directory is automatically created with proper permissions
+
+### Benefits of UV in Docker
+
+- **Faster builds**: UV resolves and installs dependencies up to 80x faster than pip
+- **Smaller images**: Multi-stage builds with optimized layers
+- **Better caching**: UV cache is persisted across builds
+- **Development profiles**: Separate configurations for production and development
+- **Log persistence**: Volume mounts ensure log files are stored persistently
 
 Note: Make sure to configure your `.env` file before building the Docker image.
 

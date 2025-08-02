@@ -3,8 +3,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: production  # Use production stage for deployment
     volumes:
       - ./data:/app/data
+      - ./logs:/app/logs  # Mount logs directory for persistence
+      - uv-cache:/root/.cache/uv  # Persist uv cache for faster builds
     env_file:
       - .env
     restart: unless-stopped
@@ -13,3 +16,32 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Development service with all dev dependencies
+  investment-app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development  # Use development stage with dev dependencies
+    volumes:
+      - .:/app  # Mount entire project directory for live development
+      - ./logs:/app/logs  # Mount logs directory for persistence
+      - uv-cache:/root/.cache/uv  # Persist uv cache
+    env_file:
+      - .env
+    environment:
+      - PYTHONPATH=/app
+    profiles:
+      - dev  # Only start when explicitly requested
+    command: ["python", "main.py", "--debug"]
+    restart: unless-stopped
+
+volumes:
+  uv-cache:
+    driver: local

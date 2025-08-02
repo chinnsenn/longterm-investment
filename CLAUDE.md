@@ -18,20 +18,58 @@ python main.py --debug
 ```
 
 ### Docker Development
+The project uses UV for optimized Docker builds with faster dependency installation.
+
 ```bash
-# Build Docker image
+# Build Docker image (production)
 docker build -t marketflow .
+
+# Build development image with dev dependencies
+docker build --target development -t marketflow:dev
 
 # Run with Docker
 docker run -d --name marketflow --restart unless-stopped -v $(pwd)/.env:/app/.env -v $(pwd)/data:/app/data marketflow
 
 # Using Docker Compose (recommended)
-docker compose up -d        # Start
-docker compose logs -f      # View logs
-docker compose down         # Stop
+docker compose up -d                    # Start production
+docker compose --profile dev up -d       # Start development
+docker compose logs -f                  # View logs
+docker compose down                     # Stop
 ```
 
+#### UV Docker Benefits
+- Multi-stage builds with optimized layers
+- UV cache persistence for faster builds
+- Separate development and production targets
+- Up to 80x faster dependency resolution in CI/CD
+
 ### Dependency Management
+
+#### Using UV (Recommended)
+UV provides up to 80x faster dependency resolution and installation.
+
+```bash
+# Install UV (one-time setup)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install dependencies with UV
+uv pip install -e .
+
+# Install with development dependencies
+uv pip install -e ".[dev]"
+
+# Run the application without activating venv
+uv run python main.py
+
+# Update specific dependencies
+uv pip install --upgrade yfinance>=0.2.54
+
+# Use convenience scripts
+./scripts/run.sh      # Production mode
+./scripts/dev.sh      # Development mode
+```
+
+#### Using pip (Traditional)
 ```bash
 # Install dependencies
 pip install -r requirements.txt
@@ -90,6 +128,7 @@ pytest --cov=marketflow --cov-report=html
   - `signal_state`: Trading signal history and position tracking
   - `vix_history`: VIX data and fear indicator historical records
 - Data freshness validation, cleanup, and comprehensive CRUD operations
+- Docker-compatible logging with volume mounts for log persistence
 
 **Market Data Engine**: `marketflow/market_data.py`
 - Yahoo Finance API integration via yfinance with error handling
@@ -201,9 +240,13 @@ The `.env` file controls:
 ### Package Structure
 - Main application code in `marketflow/` directory with clear module separation
 - Configuration via `.env` (template in `.env.example`)
-- Docker deployment ready with multi-stage build and volume mounts
+- Modern Python packaging with `pyproject.toml` for UV/pip compatibility
+- Docker deployment ready with UV-optimized multi-stage builds
+- Convenience scripts in `scripts/` directory for easy execution
 - Data persistence in SQLite database (default: `data/investment.db`)
+- Logs directory with proper permissions and volume mounting for Docker
 - All constants centralized in `constants.py` for easy maintenance
+- Development and production dependencies managed via `[project.optional-dependencies]`
 
 ### Working with Market Data
 - The system implements intelligent caching to minimize API calls
@@ -219,3 +262,5 @@ The `.env` file controls:
 - Extend database schema in `database.py` with proper initialization in `init_db()`
 - New constants should be added to `constants.py` for centralization
 - All new components should integrate with the error handling decorator system
+- New dependencies should be added to `pyproject.toml` (maintaining `requirements.txt` for backward compatibility)
+- Use `uv add <package>` for development dependency management

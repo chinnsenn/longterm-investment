@@ -1,23 +1,60 @@
-FROM python:3.11-slim
+# Use official Python slim image as base
+FROM python:3.11-slim AS base
 
+# Set working directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV UV_CACHE_DIR=/app/.uv-cache
+ENV UV_SYSTEM_PYTHON=true
+
+# Create non-root user for security
+RUN addgroup --system app && adduser --system --group app
+
+# Install system dependencies and UV
+RUN apt-get update && apt-get install -y \
     gcc \
-    && rm -rf /var/lib/apt/lists/*
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install uv
 
-# Copy requirements first to leverage Docker cache
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Development stage with all dependencies
+FROM base AS development
 
-# Copy the rest of the application
+# Copy source code first
 COPY . .
 
-# Install the package in development mode
-RUN pip install -e .
+# Install dependencies with uv
+RUN uv pip install --system -e ".[dev]" --compile
 
-# Create data directory
-RUN mkdir -p data
+# Create data and logs directories and set permissions
+RUN mkdir -p data logs && chmod 755 data logs
 
+# Switch to non-root user
+USER app
+
+# Production stage - minimal image
+FROM base AS production
+
+# Copy source code first
+COPY . .
+
+# Install only production dependencies with uv
+RUN uv pip install --system -e . --compile
+
+# Create data and logs directories and set permissions
+RUN mkdir -p data logs && chmod 755 data logs
+
+# Switch to non-root user
+USER app
+
+# Expose port (if needed for future web interface)
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD python -c "import sys; sys.exit(0)" || exit 1
+
+# Default command
 CMD ["python", "main.py"]

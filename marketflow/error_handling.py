@@ -76,7 +76,7 @@ def setup_logging_with_format(level: int = logging.INFO):
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=[
             logging.StreamHandler(),
-            logging.FileHandler('investment.log')
+            logging.FileHandler('logs/investment.log')
         ]
     )
 

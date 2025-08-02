@@ -24,6 +24,38 @@
 
 ## 安装
 
+### 方式 1：使用 UV（推荐）
+
+UV 是一个极速的 Python 包管理器，依赖解析速度比 pip 快 80 倍。
+
+1. 安装 UV：
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+2. 克隆仓库：
+```bash
+git clone git@github.com:chinnsenn/longterm-investment.git
+cd longterm-investment
+```
+
+3. 复制并配置环境变量：
+```bash
+cp .env.example .env
+# 编辑 .env 文件设置你的配置
+```
+
+4. 使用 UV 运行（自动创建虚拟环境并安装依赖）：
+```bash
+# 生产模式
+./scripts/run.sh
+
+# 开发模式
+./scripts/dev.sh
+```
+
+### 方式 2：使用 pip（传统方式）
+
 1. 克隆仓库：
 ```bash
 git clone git@github.com:chinnsenn/longterm-investment.git
@@ -49,18 +81,43 @@ cp .env.example .env
 
 ## 使用方法
 
-运行主程序：
+### 使用 UV（推荐）
 ```bash
+# 生产模式运行
+./scripts/run.sh
+
+# 开发模式运行（包含调试日志）
+./scripts/dev.sh
+
+# 或直接使用 uv 运行
+uv run python main.py
+```
+
+### 使用传统 pip
+```bash
+# 先激活虚拟环境
+source .venv/bin/activate  # Windows 使用: .venv\Scripts\activate
+
+# 运行应用
 python main.py
+
+# 带调试日志运行
+python main.py --debug
 ```
 
 ## Docker 部署
+
+项目现在使用 UV 进行更快的依赖管理。
 
 ### 使用 Docker
 
 1. 构建 Docker 镜像：
 ```bash
+# 构建生产镜像
 docker build -t marketflow .
+
+# 构建包含开发依赖的开发镜像
+docker build --target development -t marketflow:dev
 ```
 
 2. 运行容器：
@@ -78,22 +135,43 @@ docker run -d \
 docker logs -f marketflow
 ```
 
-### 使用 Docker Compose
+### 使用 Docker Compose（推荐）
 
-1. 启动应用：
+1. 启动生产应用：
 ```bash
 docker compose up -d
 ```
 
-2. 查看日志：
+2. 启动开发环境（支持热重载）：
+```bash
+docker compose --profile dev up -d
+```
+
+3. 查看日志：
 ```bash
 docker compose logs -f
 ```
 
-3. 停止应用：
+4. 停止应用：
 ```bash
 docker compose down
 ```
+
+### Docker 日志管理
+
+日志文件会写入到宿主机的 `./logs` 目录，便于持久化和排查问题：
+
+- 宿主机日志目录：`./logs/investment.log`
+- 容器内日志位置：`/app/logs/investment.log`
+- 自动创建具有适当权限的日志目录
+
+### Docker 中使用 UV 的优势
+
+- **更快的构建**：UV 解析和安装依赖的速度比 pip 快 80 倍
+- **更小的镜像**：多阶段构建，优化的层级结构
+- **更好的缓存**：UV 缓存在构建之间持久化
+- **开发环境配置**：生产和开发环境的分离配置
+- **日志持久化**：通过卷挂载保证日志文件的持久存储
 
 注意：在构建 Docker 镜像之前，请确保已正确配置 `.env` 文件。
 
