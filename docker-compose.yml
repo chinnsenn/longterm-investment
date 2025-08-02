@@ -8,6 +8,8 @@ services:
       - ./data:/app/data
       - ./logs:/app/logs  # Mount logs directory for persistence
       - uv-cache:/root/.cache/uv  # Persist uv cache for faster builds
+    environment:
+      - LOG_PATH=/app/logs/investment.log
     env_file:
       - .env
     restart: unless-stopped
@@ -37,6 +39,7 @@ services:
       - .env
     environment:
       - PYTHONPATH=/app
+      - LOG_PATH=/app/logs/investment.log
     profiles:
       - dev  # Only start when explicitly requested
     command: ["python", "main.py", "--debug"]
