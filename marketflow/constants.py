@@ -42,3 +42,22 @@ API_TIMEOUT_SECONDS = 10
 # Strategy parameters
 DEFAULT_WEEKS_FOR_ANALYSIS = 10
 WEEKS_NEEDED_FOR_MA = 4
+
+# VIX and Fear Indicator constants
+VIX_SYMBOL = '^VIX'
+VIX_MA_PERIOD = 20
+VIX_LONG_MA_PERIOD = 50
+VIX_HISTORY_DAYS = 252  # 1 year for percentile calculations
+VIX_EXTREME_FEAR_THRESHOLD = 35
+VIX_FEAR_THRESHOLD = 25
+VIX_GREED_THRESHOLD = 15
+VIX_EXTREME_GREED_THRESHOLD = 10
+
+# Fear indicator levels
+FEAR_LEVELS = {
+    'EXTREME_FEAR': {'min': 0, 'max': 20, 'emoji': '😱', 'label': '极度恐惧'},
+    'FEAR': {'min': 21, 'max': 40, 'emoji': '😨', 'label': '恐惧'},
+    'NEUTRAL': {'min': 41, 'max': 60, 'emoji': '😐', 'label': '中性'},
+    'GREED': {'min': 61, 'max': 80, 'emoji': '😊', 'label': '贪婪'},
+    'EXTREME_GREED': {'min': 81, 'max': 100, 'emoji': '🤑', 'label': '极度贪婪'}
+}

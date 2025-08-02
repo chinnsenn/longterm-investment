@@ -8,6 +8,11 @@ from .constants import API_TIMEOUT_SECONDS, DEFAULT_WEEKS_FOR_ANALYSIS, WEEKS_NE
 
 class MarketData:
     @staticmethod
+    def _get_ticker(symbol: str):
+        """Get yfinance Ticker object for a symbol."""
+        return yf.Ticker(symbol)
+    
+    @staticmethod
     @retry_on_failure(max_retries=3)
     @handle_market_data_errors
     def get_weekly_prices(symbol: str, weeks: int = DEFAULT_WEEKS_FOR_ANALYSIS) -> Dict[datetime, float]:
@@ -16,7 +21,7 @@ class MarketData:
             today = datetime.now()
             start_date = today - timedelta(weeks=weeks+2)
             
-            ticker = yf.Ticker(symbol)
+            ticker = MarketData._get_ticker(symbol)
             df = ticker.history(start=start_date, end=today)
             
             if df.empty:
@@ -47,7 +52,7 @@ class MarketData:
         prices = {}
         for symbol in symbols:
             try:
-                ticker = yf.Ticker(symbol)
+                ticker = MarketData._get_ticker(symbol)
                 df = ticker.history(period="1d")
                 if df.empty:
                     raise ValueError(f"No data available for symbol {symbol}")
@@ -62,7 +67,7 @@ class MarketData:
     def get_latest_price(symbol: str) -> float:
         """Get the latest price for a symbol."""
         try:
-            ticker = yf.Ticker(symbol)
+            ticker = MarketData._get_ticker(symbol)
             df = ticker.history(period="1d")
             
             if df.empty:
@@ -165,7 +170,7 @@ class MarketData:
             today = datetime.now()
             start_date = today - timedelta(days=days+period)
             
-            ticker = yf.Ticker(symbol)
+            ticker = MarketData._get_ticker(symbol)
             df = ticker.history(start=start_date, end=today)
             
             if df.empty:
@@ -198,7 +203,7 @@ class MarketData:
             today = datetime.now()
             start_date = today - timedelta(days=days+period)
             
-            ticker = yf.Ticker(symbol)
+            ticker = MarketData._get_ticker(symbol)
             df = ticker.history(start=start_date, end=today)
             
             if df.empty:
@@ -247,3 +252,40 @@ class MarketData:
         elif is_oversold:
             return " 超卖", False, True
         return "正常", False, False
+    
+    @staticmethod
+    @retry_on_failure(max_retries=3)
+    @handle_market_data_errors
+    def get_vix_history(days: int = 252) -> pd.DataFrame:
+        """
+        Get historical VIX data.
+        
+        Args:
+            days: Number of days of historical data
+            
+        Returns:
+            DataFrame with VIX historical data
+        """
+        today = datetime.now()
+        start_date = today - timedelta(days=days)
+        
+        ticker = MarketData._get_ticker('^VIX')
+        df = ticker.history(start=start_date, end=today)
+        
+        if df.empty:
+            raise ValueError("No VIX data available")
+        
+        return df
+    
+    @staticmethod
+    @retry_on_failure(max_retries=3)
+    @handle_market_data_errors
+    def get_current_vix() -> float:
+        """Get current VIX value."""
+        ticker = MarketData._get_ticker('^VIX')
+        df = ticker.history(period="1d")
+        
+        if df.empty:
+            raise ValueError("No VIX data available")
+        
+        return float(df['Close'].iloc[-1])

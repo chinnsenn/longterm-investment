@@ -1,12 +1,13 @@
 """Monitoring and data processing utilities."""
 import logging
 import time
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Dict, Any
 from marketflow.market_data import MarketData
 from marketflow.strategy import Strategy
 from marketflow.ratio_calculator import QQQSPYRatioCalculator
 from marketflow.database import DatabaseManager
 from marketflow.notification import Notifier
+from marketflow.market_fear import MarketFearIndicator
 from marketflow.constants import (
     QQQ_MA30_PERIOD,
     QQQ_MA50_PERIOD,
@@ -15,7 +16,7 @@ from marketflow.constants import (
 )
 
 
-def fetch_market_indicators(market_data: MarketData) -> Tuple[float, float, float, float, float, float, str, str, bool, bool, str, str]:
+def fetch_market_indicators(market_data: MarketData, fear_indicator: MarketFearIndicator) -> Tuple[float, float, float, float, float, float, str, str, bool, bool, str, str, Dict[str, Any]]:
     """
     Fetch all market indicators and technical analysis data.
     
@@ -33,6 +34,7 @@ def fetch_market_indicators(market_data: MarketData) -> Tuple[float, float, floa
         - qqq_oversold: QQQ oversold flag
         - spy_overbought: SPY overbought flag
         - spy_oversold: SPY oversold flag
+        - fear_data: Fear indicator data dictionary
     """
     # Get moving averages for QQQ and SPY
     qqq_ma30 = market_data.get_moving_average('QQQ', period=QQQ_MA30_PERIOD).iloc[-1]
@@ -48,9 +50,12 @@ def fetch_market_indicators(market_data: MarketData) -> Tuple[float, float, floa
     qqq_rsi_status, qqq_overbought, qqq_oversold = market_data.get_rsi_status(qqq_rsi)
     spy_rsi_status, spy_overbought, spy_oversold = market_data.get_rsi_status(spy_rsi)
     
+    # Calculate fear indicator data
+    fear_data = fear_indicator.calculate_fear_score()
+    
     return (qqq_ma30, qqq_ma50, spy_ma50, spy_ma100, qqq_rsi, spy_rsi,
             qqq_rsi_status, spy_rsi_status, qqq_overbought, qqq_oversold,
-            spy_overbought, spy_oversold)
+            spy_overbought, spy_oversold, fear_data)
 
 
 def format_notification_message(strategy_position, current_ratio: float, v_value: float, 
@@ -58,7 +63,8 @@ def format_notification_message(strategy_position, current_ratio: float, v_value
                                spy_ma50: float, spy_ma100: float, qqq_rsi: float,
                                spy_rsi: float, qqq_rsi_status: str, spy_rsi_status: str,
                                qqq_overbought: bool, qqq_oversold: bool,
-                               spy_overbought: bool, spy_oversold: bool) -> str:
+                               spy_overbought: bool, spy_oversold: bool,
+                               fear_data: Dict[str, Any], fear_indicator: MarketFearIndicator) -> str:
     """
     Format the complete notification message with all market data.
     """
@@ -92,8 +98,15 @@ def format_notification_message(strategy_position, current_ratio: float, v_value
         f"SPY (14日): {spy_rsi:.1f} {spy_rsi_status}"
     )
     
+    # Format fear indicator message
+    fear_message = (
+        "\n\n😱 市场恐惧指数\n"
+        "==================\n"
+        f"{fear_indicator.get_fear_status_message(fear_data)}"
+    )
+    
     # Combine all messages
-    return strategy_message + ma_message + rsi_message
+    return strategy_message + ma_message + rsi_message + fear_message
 
 
 def process_market_cycle(database: DatabaseManager, ratio_calculator: QQQSPYRatioCalculator,
@@ -125,17 +138,29 @@ def process_market_cycle(database: DatabaseManager, ratio_calculator: QQQSPYRati
         spy_ma_condition = strategy.check_spy_ma_condition()
         strategy_position = strategy.evaluate_position(n_value, v_value, spy_ma_condition)
         
+        # Initialize fear indicator
+        fear_indicator = MarketFearIndicator(market_data)
+        
         # Fetch all market indicators
         (qqq_ma30, qqq_ma50, spy_ma50, spy_ma100, qqq_rsi, spy_rsi,
          qqq_rsi_status, spy_rsi_status, qqq_overbought, qqq_oversold,
-         spy_overbought, spy_oversold) = fetch_market_indicators(market_data)
+         spy_overbought, spy_oversold, fear_data) = fetch_market_indicators(market_data, fear_indicator)
         
         # Format and send notification
         message = format_notification_message(
             strategy_position, n_value, v_value, spy_ma_condition,
             qqq_ma30, qqq_ma50, spy_ma50, spy_ma100,
             qqq_rsi, spy_rsi, qqq_rsi_status, spy_rsi_status,
-            qqq_overbought, qqq_oversold, spy_overbought, spy_oversold
+            qqq_overbought, qqq_oversold, spy_overbought, spy_oversold,
+            fear_data, fear_indicator
+        )
+        
+        # Store VIX data in database
+        database.store_vix_data(
+            fear_data['current_vix'],
+            fear_data['vix_percentile'],
+            fear_data['fear_score'],
+            fear_data['fear_level']
         )
         
         # Send notifications

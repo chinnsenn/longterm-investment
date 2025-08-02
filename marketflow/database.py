@@ -45,6 +45,17 @@ class DatabaseManager:
             )
         ''')
         
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS vix_history (
+                date TEXT PRIMARY KEY,
+                vix_value REAL,
+                vix_percentile REAL,
+                fear_score REAL,
+                fear_level TEXT,
+                last_updated TEXT
+            )
+        ''')
+        
         # Initialize signal state if not exists
         cursor.execute('''
             INSERT OR IGNORE INTO signal_state (id, last_n_above_v, last_check_time, last_long_signal, last_signal_time)
@@ -151,3 +162,75 @@ class DatabaseManager:
         conn.close()
         
         return result[0] > 0
+    
+    @handle_database_errors
+    def store_vix_data(self, vix_value: float, vix_percentile: float, fear_score: float, fear_level: str):
+        """Store VIX data and fear indicators."""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        current_date = datetime.now().strftime('%Y-%m-%d')
+        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        cursor.execute('''
+            INSERT OR REPLACE INTO vix_history (date, vix_value, vix_percentile, fear_score, fear_level, last_updated)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (current_date, vix_value, vix_percentile, fear_score, fear_level, current_time))
+        
+        conn.commit()
+        conn.close()
+    
+    @handle_database_errors
+    def get_vix_history(self, days: int = 30) -> list:
+        """Get recent VIX history."""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        cutoff_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
+        
+        cursor.execute('''
+            SELECT date, vix_value, vix_percentile, fear_score, fear_level
+            FROM vix_history
+            WHERE date >= ?
+            ORDER BY date DESC
+        ''', (cutoff_date,))
+        
+        results = cursor.fetchall()
+        conn.close()
+        
+        return [
+            {
+                'date': row[0],
+                'vix_value': row[1],
+                'vix_percentile': row[2],
+                'fear_score': row[3],
+                'fear_level': row[4]
+            }
+            for row in results
+        ]
+    
+    @handle_database_errors
+    def get_latest_vix_data(self) -> Optional[dict]:
+        """Get the latest VIX data."""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT vix_value, vix_percentile, fear_score, fear_level, last_updated
+            FROM vix_history
+            ORDER BY date DESC
+            LIMIT 1
+        ''')
+        
+        result = cursor.fetchone()
+        conn.close()
+        
+        if result:
+            return {
+                'vix_value': result[0],
+                'vix_percentile': result[1],
+                'fear_score': result[2],
+                'fear_level': result[3],
+                'last_updated': result[4]
+            }
+        return None
