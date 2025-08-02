@@ -3,10 +3,14 @@ import pandas as pd
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 import numpy as np
+from .error_handling import handle_market_data_errors, retry_on_failure
+from .constants import API_TIMEOUT_SECONDS, DEFAULT_WEEKS_FOR_ANALYSIS, WEEKS_NEEDED_FOR_MA
 
 class MarketData:
     @staticmethod
-    def get_weekly_prices(symbol: str, weeks: int = 10) -> Dict[datetime, float]:
+    @retry_on_failure(max_retries=3)
+    @handle_market_data_errors
+    def get_weekly_prices(symbol: str, weeks: int = DEFAULT_WEEKS_FOR_ANALYSIS) -> Dict[datetime, float]:
         """Fetch weekly prices from Yahoo Finance."""
         try:
             today = datetime.now()
@@ -33,6 +37,8 @@ class MarketData:
             raise ValueError(f"Error fetching data for {symbol}: {str(e)}")
     
     @staticmethod
+    @retry_on_failure(max_retries=3)
+    @handle_market_data_errors
     def get_current_prices(symbols: List[str]) -> Dict[str, float]:
         """Get current market prices for given symbols."""
         if not symbols:
@@ -51,6 +57,8 @@ class MarketData:
         return prices
     
     @staticmethod
+    @retry_on_failure(max_retries=3)
+    @handle_market_data_errors
     def get_latest_price(symbol: str) -> float:
         """Get the latest price for a symbol."""
         try:
@@ -138,96 +146,8 @@ class MarketData:
         return upward_crossover, downward_crossover, slope
     
     @staticmethod
-    def check_ma_crossover(symbol: str, ma_period: int = 40) -> Tuple[bool, float, float]:
-        """
-        检查价格是否突破移动平均线，使用趋势确认。
-        """
-        try:
-            # 获取足够的数据用于MA计算和趋势判断
-            weeks_needed = ma_period + 4
-            today = datetime.now()
-            start_date = today - timedelta(weeks=weeks_needed)
-            
-            ticker = yf.Ticker(symbol)
-            df = ticker.history(start=start_date, end=today)
-            
-            if df.empty:
-                raise ValueError(f"No data available for symbol {symbol}")
-            
-            # 计算周数据
-            df = df.reset_index()
-            df['Date'] = pd.to_datetime(df['Date'])
-            weekly_data = df.set_index('Date').resample('W-FRI').last()
-            weekly_data = weekly_data.dropna()
-            
-            # 计算MA
-            weekly_data['MA'] = weekly_data['Close'].rolling(window=ma_period).mean()
-            
-            # 获取最近的价格数据用于趋势判断
-            prices = weekly_data['Close'].values
-            ma_values = weekly_data['MA'].dropna().values
-            
-            if len(prices) < 4 or len(ma_values) < 4:
-                raise ValueError(f"Insufficient data for trend analysis")
-            
-            # 检查趋势和突破
-            upward_cross, _, slope = MarketData.check_crossover_trend(
-                prices[-5:].tolist(),  # 使用最近5周数据
-                ma_values[-1],         # 当前MA值
-                window=3              # 使用3周趋势
-            )
-            
-            return upward_cross, prices[-1], ma_values[-1]
-            
-        except Exception as e:
-            raise Exception(f"Error checking MA crossover for {symbol}: {str(e)}")
-            
-    @staticmethod
-    def check_ratio_crossover(symbol1: str, symbol2: str, window: int = 10) -> Tuple[bool, float, float]:
-        """
-        检查两个股票的比率是否突破其均值，使用趋势确认。
-        """
-        try:
-            today = datetime.now()
-            start_date = today - timedelta(weeks=window+4)  # 多获取一些数据用于趋势判断
-            
-            # 获取两个股票的历史数据
-            ticker1 = yf.Ticker(symbol1)
-            ticker2 = yf.Ticker(symbol2)
-            df1 = ticker1.history(start=start_date, end=today)
-            df2 = ticker2.history(start=start_date, end=today)
-            
-            if df1.empty or df2.empty:
-                raise ValueError(f"No data available for one or both symbols: {symbol1}, {symbol2}")
-            
-            # 计算比率
-            df = pd.DataFrame()
-            df['Date'] = df1.index
-            df['Ratio'] = df1['Close'] / df2['Close']
-            
-            # 计算比率的移动平均
-            df['MA'] = df['Ratio'].rolling(window=window).mean()
-            
-            # 获取最近的比率数据用于趋势判断
-            ratios = df['Ratio'].values
-            ma_values = df['MA'].dropna().values
-            
-            if len(ratios) < 4 or len(ma_values) < 4:
-                raise ValueError(f"Insufficient data for ratio trend analysis")
-            
-            # 检查趋势和突破
-            upward_cross, _, slope = MarketData.check_crossover_trend(
-                ratios[-5:].tolist(),  # 使用最近5个数据点
-                ma_values[-1],         # 当前MA值
-                window=3              # 使用3点趋势
-            )
-            
-            return upward_cross, ratios[-1], ma_values[-1]
-            
-        except Exception as e:
-            raise Exception(f"Error checking ratio crossover: {str(e)}")
-    
-    @staticmethod
+    @retry_on_failure(max_retries=3)
+    @handle_market_data_errors
     def get_moving_average(symbol: str, period: int = 20, days: int = 100) -> pd.Series:
         """
         Calculate the moving average for a given stock symbol and period.
@@ -259,6 +179,8 @@ class MarketData:
             raise Exception(f"Error calculating moving average for {symbol}: {str(e)}")
             
     @staticmethod
+    @retry_on_failure(max_retries=3)
+    @handle_market_data_errors
     def get_rsi(symbol: str, period: int = 14, days: int = 100) -> pd.Series:
         """
         Calculate the Relative Strength Index (RSI) for a given stock symbol.

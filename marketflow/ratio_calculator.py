@@ -3,10 +3,6 @@ from .database import DatabaseManager
 from .market_data import MarketData
 from .notification import Notifier
 
-class RatioCalculator:
-    def __init__(self, market_data: MarketData):
-        self.market_data = market_data
-
 class QQQSPYRatioCalculator:
     """
     QQQ/SPY ratio calculator implementing the following strategy rules:
@@ -30,7 +26,6 @@ class QQQSPYRatioCalculator:
         self.db_manager = db_manager
         self.market_data = market_data
         self.notifier = notifier
-        self.ratio_calculator = RatioCalculator(market_data)
     
     def update_weekly_data(self, weeks: int = 10) -> Tuple[List[float], float]:
         """Update weekly data and calculate ratios."""
@@ -76,66 +71,3 @@ class QQQSPYRatioCalculator:
         current_n = current_prices['QQQ'] / current_prices['SPY']
         
         return current_n, v
-    
-    def notify_if_signal(self, current_n: float, v: float):
-        """
-        Send notification if there's a trading signal.
-        
-        Trading rules:
-        1. When N crosses above V (not just N > V):
-           - If holding CASH, can buy QQQ
-           - If holding SPY, must sell first
-           - If holding QQQ, maintain position
-           
-        2. When N ≤ V:
-           - If holding CASH, can buy SPY if > 40MA
-           - If holding QQQ, must sell first
-           - If holding SPY, maintain position if > 40MA
-        """
-        # Get previous state
-        last_n_above_v, _, last_long_signal, _ = self.db_manager.get_last_signal_state()
-        current_n_above_v = current_n > v
-        
-        # Rule 1: If holding QQQ and N≤V, must sell first
-        if last_long_signal == "QQQ" and current_n <= v:
-            title = f"QQQ与SPY比率低于均值! 当前比率({current_n:.4f})低于均值({v:.4f})"
-            body = "卖出QQQ信号提醒!"
-            self.notifier.send_notification(title, body)
-            self.db_manager.update_signal_state(current_n_above_v, None)
-            return
-            
-        # Rule 2: If holding SPY and N>V, must sell first
-        if last_long_signal == "SPY" and current_n > v:
-            title = f"SPY信号条件不满足! 当前比率({current_n:.4f})高于均值({v:.4f})"
-            body = "卖出SPY信号提醒!"
-            self.notifier.send_notification(title, body)
-            self.db_manager.update_signal_state(current_n_above_v, None)
-            return
-            
-        # Rule 3: Can only enter QQQ from CASH when N crosses above V
-        if current_n > v and last_long_signal != "QQQ":
-            if last_long_signal is None and not last_n_above_v:  # Only allow entry from CASH on upward crossover
-                title = f"QQQ与SPY比率上穿均值! 当前比率({current_n:.4f})高于均值({v:.4f})"
-                body = "做多QQQ信号提醒!"
-                self.notifier.send_notification(title, body)
-                self.db_manager.update_signal_state(current_n_above_v, "QQQ")
-                
-        # Rule 4: Can only enter SPY from CASH when N≤V
-        elif current_n <= v and last_long_signal != "SPY":
-            if last_long_signal is None:  # Only allow entry from CASH
-                crossover, spy_price, ma_value = self.market_data.check_ma_crossover('SPY', ma_period=40)
-                if crossover and last_n_above_v:
-                    title = f"SPY突破40周均线! 当前价格({spy_price:.2f})高于均线({ma_value:.2f})"
-                    body = "做多SPY信号提醒!"
-                    self.notifier.send_notification(title, body)
-                    self.db_manager.update_signal_state(current_n_above_v, "SPY")
-            
-        # 检查SPY退出信号（价格跌破40周均线）
-        if last_long_signal == "SPY":
-            _, spy_price, ma_value = self.market_data.check_ma_crossover('SPY', ma_period=40)
-            if spy_price <= ma_value:
-                title = f"SPY跌破40周均线! 当前价格({spy_price:.2f})低于均线({ma_value:.2f})"
-                body = "卖出SPY信号提醒!"
-                self.notifier.send_notification(title, body)
-                print(f"{body}: {title}")
-                self.db_manager.update_signal_state(current_n_above_v, None)

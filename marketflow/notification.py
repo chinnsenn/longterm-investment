@@ -5,6 +5,7 @@ import requests
 from urllib.parse import quote
 from typing import Optional
 from .config import Config
+from .constants import API_TIMEOUT_SECONDS, DEFAULT_NOTIFICATION_COOLDOWN, DEFAULT_ERROR_RETRY_COUNT
 
 class Notifier:
     """Notification handler for sending alerts through multiple channels."""
@@ -15,12 +16,6 @@ class Notifier:
         self._retry_count = 0
         self._logger = logging.getLogger(__name__)
         self.config = Config()
-        
-        # 初始化日志格式
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        )
     
     def _can_send_notification(self) -> bool:
         """Check if enough time has passed since the last notification."""
@@ -57,7 +52,7 @@ class Notifier:
             url = f"{self.config.BARK_URL}/{self.config.BARK_API_KEY}/{encoded_title}/{encoded_body}"
             self._logger.info(f"Sending Bark notification: {message} - {title}")
             
-            response = requests.get(url, timeout=10)  # 添加超时设置
+            response = requests.get(url, timeout=API_TIMEOUT_SECONDS)
             response.raise_for_status()
             
             self._logger.info("Bark notification sent successfully")
@@ -93,7 +88,7 @@ class Notifier:
                     "text": formatted_message,
                     "parse_mode": "HTML"
                 },
-                timeout=10  # 添加超时设置
+                timeout=API_TIMEOUT_SECONDS
             )
             response.raise_for_status()
             
