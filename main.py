@@ -11,6 +11,9 @@ def main():
     setup_logging()
     logger = logging.getLogger(__name__)
     
+    # Initialize notifier as None to avoid UnboundLocalError
+    notifier = None
+    
     try:
         # Initialize all components
         (config, market_schedule, database, market_data, 
@@ -41,7 +44,8 @@ def main():
                 
     except Exception as e:
         logger.error(f"Fatal error: {str(e)}")
-        notifier.send_bark_notification("严重错误", f"程序终止: {str(e)}")
+        if notifier:
+            notifier.send_bark_notification("严重错误", f"程序终止: {str(e)}")
         return 1
         
     return 0
