@@ -6,10 +6,9 @@ services:
       target: production  # Use production stage for deployment
     volumes:
       - ./data:/app/data
-      - ./logs:/app/logs  # Mount logs directory for persistence
       - uv-cache:/root/.cache/uv  # Persist uv cache for faster builds
     environment:
-      - LOG_PATH=/app/logs/investment.log
+      - LOG_PATH=/tmp/investment.log
     env_file:
       - .env
     restart: unless-stopped
@@ -33,13 +32,12 @@ services:
       target: development  # Use development stage with dev dependencies
     volumes:
       - .:/app  # Mount entire project directory for live development
-      - ./logs:/app/logs  # Mount logs directory for persistence
       - uv-cache:/root/.cache/uv  # Persist uv cache
     env_file:
       - .env
     environment:
       - PYTHONPATH=/app
-      - LOG_PATH=/app/logs/investment.log
+      - LOG_PATH=/tmp/investment.log
     profiles:
       - dev  # Only start when explicitly requested
     command: ["python", "main.py", "--debug"]

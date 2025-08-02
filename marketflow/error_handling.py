@@ -72,8 +72,8 @@ def retry_on_failure(max_retries: int = DEFAULT_ERROR_RETRY_COUNT,
 
 def setup_logging_with_format(level: int = logging.INFO):
     """Setup logging with consistent formatting."""
-    # Use LOG_PATH environment variable if set, otherwise default to logs/investment.log
-    log_path = os.getenv('LOG_PATH', 'logs/investment.log')
+    # Use LOG_PATH environment variable if set, otherwise default to /tmp/investment.log
+    log_path = os.getenv('LOG_PATH', '/tmp/investment.log')
     logging.basicConfig(
         level=level,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
