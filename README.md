@@ -11,7 +11,12 @@ A sophisticated market trend following trading system that implements an adaptiv
 - Automated trading signals based on:
   - Relative strength ratio (QQQ/SPY)
   - Moving average indicators (QQQ MA30/MA50, SPY MA50/MA100)
+  - RSI overbought/oversold indicators
   - Market trend confirmation
+- **Market Fear Indicator**: VIX-based market sentiment analysis
+  - Real-time VIX data fetching and historical percentile analysis
+  - Five-level fear gauge: Extreme Fear, Fear, Neutral, Greed, Extreme Greed
+  - VIX trend analysis and fear scoring (0-100)
 - Multiple notification channels (Bark, Telegram)
 - Robust error handling and retry mechanisms
 - Efficient data caching and storage
@@ -106,13 +111,29 @@ The system can be configured through the `.env` file:
 ## Strategy Details
 
 The system implements a sophisticated rotation strategy between QQQ and SPY based on:
-1. Relative strength comparison (QQQ/SPY ratio)
-2. Moving average confirmations:
-   - QQQ: 30-day and 50-day moving averages
-   - SPY: 50-day and 100-day moving averages
-3. Market trend validation
 
-Notifications are sent through both Bark and Telegram when trading signals are generated.
+### Core Strategy Components
+1. **Relative Strength Analysis**: Calculates and monitors QQQ/SPY ratio
+2. **Technical Indicator Confirmations**:
+   - Moving Averages: QQQ MA30/MA50, SPY MA50/MA100
+   - RSI Indicators: Identifies overbought/oversold conditions
+   - Trend Confirmation: Ensures signal reliability
+3. **Market Sentiment Analysis**:
+   - Real-time VIX fear gauge monitoring
+   - Historical percentile comparison
+   - Fear level assessment (Extreme Fear to Extreme Greed)
+
+### Trading Logic
+- Favors QQQ when QQQ/SPY ratio exceeds threshold
+- Favors SPY when ratio is below threshold AND SPY is above 40-week MA
+- Must pass through CASH state when switching positions
+- Uses fear indicator as supplementary analysis for market extremes
+
+### Notification System
+When trading signals are generated or market sentiment changes, the system sends notifications via both Bark and Telegram containing:
+- Strategy recommendations and position status
+- Technical indicator details
+- Market fear index and sentiment analysis
 
 ## License
 
