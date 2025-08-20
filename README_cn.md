@@ -48,10 +48,10 @@ cp .env.example .env
 4. 使用 UV 运行（自动创建虚拟环境并安装依赖）：
 ```bash
 # 生产模式
-./scripts/run.sh
+uv run python main.py
 
 # 开发模式
-./scripts/dev.sh
+uv run python main.py --debug
 ```
 
 ### 方式 2：使用 pip（传统方式）
@@ -84,13 +84,10 @@ cp .env.example .env
 ### 使用 UV（推荐）
 ```bash
 # 生产模式运行
-./scripts/run.sh
+uv run python main.py
 
 # 开发模式运行（包含调试日志）
-./scripts/dev.sh
-
-# 或直接使用 uv 运行
-uv run python main.py
+uv run python main.py --debug
 ```
 
 ### 使用传统 pip

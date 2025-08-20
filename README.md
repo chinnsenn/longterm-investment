@@ -48,10 +48,10 @@ cp .env.example .env
 4. Run with UV (automatically creates virtual environment and installs dependencies):
 ```bash
 # Production mode
-./scripts/run.sh
+uv run python main.py
 
 # Development mode
-./scripts/dev.sh
+uv run python main.py --debug
 ```
 
 ### Option 2: Using pip (Traditional)
@@ -84,13 +84,10 @@ cp .env.example .env
 ### Using UV (Recommended)
 ```bash
 # Run in production mode
-./scripts/run.sh
+uv run python main.py
 
 # Run in development mode with debug logging
-./scripts/dev.sh
-
-# Or run directly with uv
-uv run python main.py
+uv run python main.py --debug
 ```
 
 ### Using Traditional pip

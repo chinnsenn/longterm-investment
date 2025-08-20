@@ -64,9 +64,11 @@ uv run python main.py
 # Update specific dependencies
 uv pip install --upgrade yfinance>=0.2.54
 
-# Use convenience scripts
-./scripts/run.sh      # Production mode
-./scripts/dev.sh      # Development mode
+# Run the application without activating venv
+uv run python main.py
+
+# Run with development logging
+uv run python main.py --debug
 ```
 
 #### Using pip (Traditional)
@@ -242,7 +244,7 @@ The `.env` file controls:
 - Configuration via `.env` (template in `.env.example`)
 - Modern Python packaging with `pyproject.toml` for UV/pip compatibility
 - Docker deployment ready with UV-optimized multi-stage builds
-- Convenience scripts in `scripts/` directory for easy execution
+- Direct execution with UV for easy development and production deployment
 - Data persistence in SQLite database (default: `data/investment.db`)
 - Logs directory with proper permissions and volume mounting for Docker
 - All constants centralized in `constants.py` for easy maintenance
