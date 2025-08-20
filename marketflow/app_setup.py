@@ -39,7 +39,18 @@ def initialize_components() -> Tuple[Config, MarketSchedule, DatabaseManager, Ma
     
     # Initialize core components
     market_schedule = MarketSchedule()
-    database = DatabaseManager(config.DB_PATH)
+    
+    # Initialize database with better error handling for permissions
+    try:
+        database = DatabaseManager(config.DB_PATH)
+    except Exception as e:
+        # Provide additional context for database initialization failures
+        raise Exception(
+            f"Failed to initialize database at {config.DB_PATH}. "
+            f"This is often due to permissions issues. Please ensure the directory is writable. "
+            f"Original error: {str(e)}"
+        ) from e
+        
     market_data = MarketData()
     ratio_calculator = QQQSPYRatioCalculator(database, market_data, notifier)
     strategy = Strategy()

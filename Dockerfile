@@ -28,8 +28,8 @@ COPY . .
 # Install dependencies with uv
 RUN uv pip install --system -e ".[dev]" --compile
 
-# Create data and logs directories and set permissions
-RUN mkdir -p data logs && chmod 755 data logs
+# Create data and logs directories
+RUN mkdir -p data logs
 
 # Switch to non-root user
 USER app
@@ -43,8 +43,8 @@ COPY . .
 # Install only production dependencies with uv
 RUN uv pip install --system -e . --compile
 
-# Create data and logs directories and set permissions
-RUN mkdir -p data logs && chmod 755 data logs
+# Create data and logs directories
+RUN mkdir -p data logs
 
 # Switch to non-root user
 USER app

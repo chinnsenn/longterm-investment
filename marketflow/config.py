@@ -97,8 +97,20 @@ class Config:
             return HOURLY_UPDATE_INTERVAL  # 非交易时间但是交易日：1小时更新一次
     
     def ensure_directories(self):
-        """Ensure all required directories exist."""
-        self.DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+        """Ensure all required directories exist with proper permissions."""
+        try:
+            # Create parent directories if they don't exist
+            self.DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Try to set proper permissions (755) for the data directory
+            # This helps avoid permission issues in different environments
+            import stat
+            self.DB_PATH.parent.chmod(stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
+        except Exception as e:
+            # Log the error but don't fail - the app might still work if permissions are adequate
+            import logging
+            logging.warning(f"Could not set permissions on data directory {self.DB_PATH.parent}: {e}")
+            logging.warning("This may cause database access issues. Please ensure the directory is writable by the application.")
     
     def validate(self):
         """Validate configuration."""

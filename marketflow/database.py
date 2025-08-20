@@ -13,57 +13,68 @@ class DatabaseManager:
     @handle_database_errors
     def init_db(self):
         """Initialize database tables if they don't exist."""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS weekly_prices (
-                date TEXT,
-                symbol TEXT,
-                price REAL,
-                last_updated TEXT,
-                PRIMARY KEY (date, symbol)
-            )
-        ''')
-        
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS calculations (
-                date TEXT PRIMARY KEY,
-                n_values TEXT,
-                v_value REAL,
-                last_updated TEXT
-            )
-        ''')
-        
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS signal_state (
-                id INTEGER PRIMARY KEY CHECK (id = 1),
-                last_n_above_v BOOLEAN,
-                last_check_time TEXT,
-                last_long_signal TEXT,
-                last_signal_time TEXT
-            )
-        ''')
-        
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS vix_history (
-                date TEXT PRIMARY KEY,
-                vix_value REAL,
-                vix_percentile REAL,
-                fear_score REAL,
-                fear_level TEXT,
-                last_updated TEXT
-            )
-        ''')
-        
-        # Initialize signal state if not exists
-        cursor.execute('''
-            INSERT OR IGNORE INTO signal_state (id, last_n_above_v, last_check_time, last_long_signal, last_signal_time)
-            VALUES (1, 0, datetime('now'), NULL, NULL)
-        ''')
-        
-        conn.commit()
-        conn.close()
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS weekly_prices (
+                    date TEXT,
+                    symbol TEXT,
+                    price REAL,
+                    last_updated TEXT,
+                    PRIMARY KEY (date, symbol)
+                )
+            ''')
+            
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS calculations (
+                    date TEXT PRIMARY KEY,
+                    n_values TEXT,
+                    v_value REAL,
+                    last_updated TEXT
+                )
+            ''')
+            
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS signal_state (
+                    id INTEGER PRIMARY KEY CHECK (id = 1),
+                    last_n_above_v BOOLEAN,
+                    last_check_time TEXT,
+                    last_long_signal TEXT,
+                    last_signal_time TEXT
+                )
+            ''')
+            
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS vix_history (
+                    date TEXT PRIMARY KEY,
+                    vix_value REAL,
+                    vix_percentile REAL,
+                    fear_score REAL,
+                    fear_level TEXT,
+                    last_updated TEXT
+                )
+            ''')
+            
+            # Initialize signal state if not exists
+            cursor.execute('''
+                INSERT OR IGNORE INTO signal_state (id, last_n_above_v, last_check_time, last_long_signal, last_signal_time)
+                VALUES (1, 0, datetime('now'), NULL, NULL)
+            ''')
+            
+            conn.commit()
+            conn.close()
+        except sqlite3.OperationalError as e:
+            # Provide more detailed error information for permission issues
+            if "unable to open database file" in str(e):
+                raise sqlite3.OperationalError(
+                    f"Unable to open database file at {self.db_path}. "
+                    f"This is likely a permissions issue. Please ensure the directory is writable by the application. "
+                    f"Error details: {str(e)}"
+                ) from e
+            else:
+                raise
     
     @handle_database_errors
     def is_data_fresh(self, max_age_hours: int = 24) -> bool:

@@ -6,7 +6,7 @@ services:
       target: production  # Use production stage for deployment
     volumes:
       - ./data:/app/data
-      - uv-cache:/root/.cache/uv  # Persist uv cache for faster builds
+      - uv-cache:/tmp/.cache/uv  # Persist uv cache in tmp directory for better permissions
     environment:
       - LOG_PATH=/tmp/investment.log
     env_file:
@@ -32,7 +32,7 @@ services:
       target: development  # Use development stage with dev dependencies
     volumes:
       - .:/app  # Mount entire project directory for live development
-      - uv-cache:/root/.cache/uv  # Persist uv cache
+      - uv-cache:/tmp/.cache/uv  # Persist uv cache in tmp directory for better permissions
     env_file:
       - .env
     environment:

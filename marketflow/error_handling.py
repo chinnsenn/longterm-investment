@@ -17,7 +17,18 @@ def handle_database_errors(func: Callable[P, T]) -> Callable[P, T]:
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            logging.error(f"Database error in {func.__name__}: {str(e)}")
+            # Provide more specific error handling for common database issues
+            error_msg = f"Database error in {func.__name__}: {str(e)}"
+            
+            # Add specific guidance for permission-related errors
+            if "unable to open database file" in str(e):
+                error_msg += (
+                    ". This is likely a permissions issue. "
+                    "Please ensure the database directory is writable by the application user. "
+                    "In Docker environments, check volume permissions and user ID mappings."
+                )
+            
+            logging.error(error_msg)
             raise  # Re-raise after logging
     
     return wrapper
