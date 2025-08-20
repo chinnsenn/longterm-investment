@@ -104,7 +104,7 @@ python main.py --debug
 
 ## Docker Deployment
 
-The project now uses UV for faster dependency management in Docker.
+The project uses standard pip for dependency management in Docker.
 
 ### Using Docker
 
@@ -162,11 +162,9 @@ Log files are written to the host's `./logs` directory for persistence and troub
 - Container log path: `/app/logs/investment.log`
 - Logs directory is automatically created with proper permissions
 
-### Benefits of UV in Docker
+### Docker Build Benefits
 
-- **Faster builds**: UV resolves and installs dependencies up to 80x faster than pip
 - **Smaller images**: Multi-stage builds with optimized layers
-- **Better caching**: UV cache is persisted across builds
 - **Development profiles**: Separate configurations for production and development
 - **Log persistence**: Volume mounts ensure log files are stored persistently
 
