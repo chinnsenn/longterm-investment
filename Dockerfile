@@ -6,18 +6,14 @@ WORKDIR /app
 
 # Set environment variables
 ENV PYTHONPATH=/app
-ENV UV_CACHE_DIR=/app/.uv-cache
-ENV UV_SYSTEM_PYTHON=true
 
 # Create non-root user for security
 RUN addgroup --system app && adduser --system --group app
 
-# Install system dependencies and UV
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
-    curl \
-    && rm -rf /var/lib/apt/lists/* \
-    && pip install uv
+    && rm -rf /var/lib/apt/lists/*
 
 # Development stage with all dependencies
 FROM base AS development
@@ -25,8 +21,8 @@ FROM base AS development
 # Copy source code first
 COPY . .
 
-# Install dependencies with uv
-RUN uv pip install --system -e ".[dev]" --compile
+# Install dependencies with pip
+RUN pip install -e ".[dev]"
 
 # Create data and logs directories
 RUN mkdir -p data logs
@@ -40,8 +36,8 @@ FROM base AS production
 # Copy source code first
 COPY . .
 
-# Install only production dependencies with uv
-RUN uv pip install --system -e . --compile
+# Install only production dependencies with pip
+RUN pip install -e .
 
 # Create data and logs directories
 RUN mkdir -p data logs
