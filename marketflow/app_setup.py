@@ -48,6 +48,7 @@ def initialize_components() -> Tuple[Config, MarketSchedule, DatabaseManager, Ma
         raise Exception(
             f"Failed to initialize database at {config.DB_PATH}. "
             f"This is often due to permissions issues. Please ensure the directory is writable. "
+            f"For VPS deployments, try running with: UID=$(id -u) GID=$(id -g) docker compose up -d"
             f"Original error: {str(e)}"
         ) from e
         

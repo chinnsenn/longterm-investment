@@ -22,6 +22,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    # Use the current user ID to avoid permission issues on VPS
+    user: "${UID:-1000}:${GID:-1000}"
 
   # Development service with all dev dependencies
   investment-app-dev:
@@ -40,5 +42,7 @@ services:
       - dev  # Only start when explicitly requested
     command: ["python", "main.py", "--debug"]
     restart: unless-stopped
+    # Use the current user ID to avoid permission issues on VPS
+    user: "${UID:-1000}:${GID:-1000}"
 
 # No custom volumes needed

@@ -18,32 +18,32 @@ RUN apt-get update && apt-get install -y \
 # Development stage with all dependencies
 FROM base AS development
 
+# Switch to non-root user
+USER app
+
 # Copy source code first
-COPY . .
+COPY --chown=app:app . .
 
 # Install dependencies with pip
 RUN pip install -e ".[dev]"
 
-# Create data and logs directories
+# Create data and logs directories with correct ownership
 RUN mkdir -p data logs
-
-# Switch to non-root user
-USER app
 
 # Production stage - minimal image
 FROM base AS production
 
+# Switch to non-root user
+USER app
+
 # Copy source code first
-COPY . .
+COPY --chown=app:app . .
 
 # Install only production dependencies with pip
 RUN pip install -e .
 
-# Create data and logs directories
+# Create data and logs directories with correct ownership
 RUN mkdir -p data logs
-
-# Switch to non-root user
-USER app
 
 # Expose port (if needed for future web interface)
 EXPOSE 8000

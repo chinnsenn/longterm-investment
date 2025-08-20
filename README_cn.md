@@ -136,12 +136,20 @@ docker logs -f marketflow
 
 1. 启动生产应用：
 ```bash
+# 适用于普通环境
 docker compose up -d
+
+# 适用于 VPS 环境（避免权限问题）
+UID=$(id -u) GID=$(id -g) docker compose up -d
 ```
 
 2. 启动开发环境（支持热重载）：
 ```bash
+# 适用于普通环境
 docker compose --profile dev up -d
+
+# 适用于 VPS 环境（避免权限问题）
+UID=$(id -u) GID=$(id -g) docker compose --profile dev up -d
 ```
 
 3. 查看日志：

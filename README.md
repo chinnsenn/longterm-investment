@@ -136,12 +136,20 @@ docker logs -f marketflow
 
 1. Start the production application:
 ```bash
+# For regular environments
 docker compose up -d
+
+# For VPS environments (to avoid permission issues)
+UID=$(id -u) GID=$(id -g) docker compose up -d
 ```
 
 2. Start the development environment (with hot-reload capabilities):
 ```bash
+# For regular environments
 docker compose --profile dev up -d
+
+# For VPS environments (to avoid permission issues)
+UID=$(id -u) GID=$(id -g) docker compose --profile dev up -d
 ```
 
 3. View logs:

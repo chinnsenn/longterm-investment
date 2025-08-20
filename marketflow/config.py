@@ -111,6 +111,18 @@ class Config:
             import logging
             logging.warning(f"Could not set permissions on data directory {self.DB_PATH.parent}: {e}")
             logging.warning("This may cause database access issues. Please ensure the directory is writable by the application.")
+            
+        # Additional check for VPS environments
+        try:
+            # Test if we can write to the directory
+            test_file = self.DB_PATH.parent / ".permission_test"
+            test_file.touch()
+            test_file.unlink()
+        except Exception as e:
+            import logging
+            logging.error(f"Permission test failed for {self.DB_PATH.parent}: {e}")
+            logging.error("This indicates a permission issue that may prevent the application from running properly.")
+            logging.error("For VPS deployments, try running with: UID=$(id -u) GID=$(id -g) docker compose up -d")
     
     def validate(self):
         """Validate configuration."""
