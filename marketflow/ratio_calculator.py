@@ -71,3 +71,54 @@ class QQQSPYRatioCalculator:
         current_n = current_prices['QQQ'] / current_prices['SPY']
         
         return current_n, v
+    
+    def calculate_dynamic_threshold(self, n_values: List[float], market_regime: str) -> float:
+        """
+        Calculate dynamic threshold based on market regime.
+        
+        Args:
+            n_values: List of N values for calculating base threshold
+            market_regime: Market regime ('bull', 'bear', or 'neutral')
+            
+        Returns:
+            Dynamic threshold value
+        """
+        # Calculate base threshold (V value)
+        base_v = self.market_data.calculate_average(n_values)
+        
+        # Adjust threshold based on market regime
+        if market_regime == 'bull':
+            # In bull market, raise threshold to avoid premature switches
+            return base_v * 1.02
+        elif market_regime == 'bear':
+            # In bear market, lower threshold to switch to defensive assets earlier
+            return base_v * 0.98
+        else:
+            # Neutral market, use base threshold
+            return base_v
+    
+    def determine_market_regime(self, vix_level: float, vix_percentile: float) -> str:
+        """
+        Determine market regime based on VIX indicators.
+        
+        Args:
+            vix_level: Current VIX level
+            vix_percentile: VIX percentile rank
+            
+        Returns:
+            Market regime ('bull', 'bear', or 'neutral')
+        """
+        # VIX thresholds for market regime determination
+        # These could be made configurable in the future
+        high_vix_threshold = 25
+        low_vix_threshold = 15
+        high_percentile = 70
+        low_percentile = 30
+        
+        # Determine regime based on VIX level and percentile
+        if vix_level > high_vix_threshold or vix_percentile > high_percentile:
+            return 'bear'  # High volatility indicates bear market
+        elif vix_level < low_vix_threshold or vix_percentile < low_percentile:
+            return 'bull'   # Low volatility indicates bull market
+        else:
+            return 'neutral'

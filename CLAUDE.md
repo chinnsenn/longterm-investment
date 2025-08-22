@@ -168,6 +168,7 @@ mypy .
   - RSI indicators with overbought/oversold detection
   - QQQ/SPY ratio calculations
   - VIX data fetching and historical analysis
+  - MACD and Bollinger Bands indicators
 - Crossover detection with trend confirmation using multiple data points
 
 **Market Fear Indicator**: `marketflow/market_fear.py`
@@ -184,10 +185,13 @@ mypy .
   - QQQ: Buy when ratio > threshold
   - SPY: Buy when ratio ≤ threshold AND SPY > 40-week MA
   - Must pass through CASH when switching positions (no direct ETF-to-ETF switches)
+- Enhanced multi-factor confirmation strategy with RSI, moving averages, and fear indicators
+- Stop loss management and position sizing capabilities
 
 **Ratio Calculator**: `marketflow/ratio_calculator.py`
 - Core business logic for QQQ/SPY ratio calculations
 - Weekly data updates and V value computations using historical averages
+- Dynamic threshold calculation based on market regime
 - Signal generation triggers with notification integration
 
 **Market Schedule**: `marketflow/market_schedule.py`
@@ -198,11 +202,24 @@ mypy .
 - Centralized market cycle processing with comprehensive indicator fetching
 - Formats notification messages with all technical and sentiment data
 - Orchestrates the complete analysis workflow in each cycle
+- Integrates enhanced strategy evaluation with multi-factor confirmation
 
 **Notification System**: `marketflow/notification.py`
 - Multi-channel support: Bark API and Telegram Bot
 - HTML-formatted messages with structured sections and cooldown periods
 - Retry mechanisms and error handling for delivery assurance
+
+**Backtesting Framework**: `marketflow/backtesting.py`
+- Comprehensive backtesting engine for strategy validation
+- Performance analysis with Sharpe ratio, maximum drawdown, and other metrics
+- Parameter optimization capabilities
+
+**Risk Management**: `marketflow/risk_management.py`
+- Transaction cost modeling
+- Position sizing with Kelly Criterion and volatility adjustment
+- Drawdown control and monitoring
+- Stop loss management with trailing stops
+- Risk metrics calculation (VaR, volatility, etc.)
 
 ### Data Flow
 
@@ -237,6 +254,8 @@ The `.env` file controls:
 - Includes RSI indicators for overbought/oversold confirmation
 - Supports multiple ETFs and inverse ETFs for different market conditions
 - Fear indicator provides additional context for extreme market conditions
+- Enhanced multi-factor confirmation reduces false signals
+- Dynamic threshold adjustment based on market regime
 
 ### Fear Indicator Implementation
 - VIX data fetched via Yahoo Finance (^VIX symbol)
@@ -259,6 +278,19 @@ The `.env` file controls:
 - All tables include timestamp fields for data freshness validation
 - SQLite chosen for simplicity and reliability in single-instance deployment
 - Automatic schema creation and initialization on first run
+
+### Backtesting Framework
+- Comprehensive historical strategy testing capabilities
+- Performance metrics including Sharpe ratio, maximum drawdown, and Calmar ratio
+- Parameter optimization with grid search
+- Benchmark comparison functionality
+
+### Risk Management
+- Transaction cost modeling with commission and slippage
+- Position sizing using Kelly Criterion and volatility adjustment
+- Stop loss management with trailing stops
+- Drawdown control with maximum drawdown limits
+- Risk metrics calculation (VaR, volatility, etc.)
 
 ## Development Notes
 
@@ -295,3 +327,6 @@ The `.env` file controls:
 - All new components should integrate with the error handling decorator system
 - New dependencies should be added to `pyproject.toml` (maintaining `requirements.txt` for backward compatibility)
 - Use `uv add <package>` for development dependency management
+- Implement backtesting for new strategies in `backtesting.py`
+- Add risk management features in `risk_management.py`
+- Enhance market regime detection in `ratio_calculator.py`

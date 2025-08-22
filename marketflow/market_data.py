@@ -289,3 +289,120 @@ class MarketData:
             raise ValueError("No VIX data available")
         
         return float(df['Close'].iloc[-1])
+    
+    @staticmethod
+    @retry_on_failure(max_retries=3)
+    @handle_market_data_errors
+    def get_macd(symbol: str, fast_period: int = 12, slow_period: int = 26, 
+                 signal_period: int = 9, days: int = 100) -> Tuple[pd.Series, pd.Series, pd.Series]:
+        """
+        Calculate MACD (Moving Average Convergence Divergence) for a given stock symbol.
+        
+        Args:
+            symbol (str): Stock symbol
+            fast_period (int): Fast EMA period (default: 12)
+            slow_period (int): Slow EMA period (default: 26)
+            signal_period (int): Signal line period (default: 9)
+            days (int): Number of days of historical data to fetch
+            
+        Returns:
+            Tuple[pd.Series, pd.Series, pd.Series]: (MACD line, Signal line, Histogram)
+        """
+        try:
+            # Fetch historical data
+            today = datetime.now()
+            start_date = today - timedelta(days=days+slow_period)
+            
+            ticker = MarketData._get_ticker(symbol)
+            df = ticker.history(start=start_date, end=today)
+            
+            if df.empty:
+                raise ValueError(f"No data available for symbol {symbol}")
+            
+            # Calculate EMAs
+            ema_fast = df['Close'].ewm(span=fast_period).mean()
+            ema_slow = df['Close'].ewm(span=slow_period).mean()
+            
+            # Calculate MACD line
+            macd_line = ema_fast - ema_slow
+            
+            # Calculate signal line
+            signal_line = macd_line.ewm(span=signal_period).mean()
+            
+            # Calculate histogram
+            histogram = macd_line - signal_line
+            
+            return macd_line, signal_line, histogram
+            
+        except Exception as e:
+            raise Exception(f"Error calculating MACD for {symbol}: {str(e)}")
+    
+    @staticmethod
+    def get_macd_status(macd_line: float, signal_line: float) -> Tuple[str, bool]:
+        """
+        Get MACD status and bullish/bearish signal.
+        
+        Returns:
+            Tuple[str, bool]: (Status message, is_bullish)
+        """
+        is_bullish = macd_line > signal_line
+        status = "金叉 ✅" if is_bullish else "死叉 ❌"
+        return status, is_bullish
+    
+    @staticmethod
+    @retry_on_failure(max_retries=3)
+    @handle_market_data_errors
+    def get_bollinger_bands(symbol: str, period: int = 20, std_dev: int = 2, 
+                           days: int = 100) -> Tuple[pd.Series, pd.Series, pd.Series]:
+        """
+        Calculate Bollinger Bands for a given stock symbol.
+        
+        Args:
+            symbol (str): Stock symbol
+            period (int): Period for moving average (default: 20)
+            std_dev (int): Standard deviation multiplier (default: 2)
+            days (int): Number of days of historical data to fetch
+            
+        Returns:
+            Tuple[pd.Series, pd.Series, pd.Series]: (Upper band, Middle band, Lower band)
+        """
+        try:
+            # Fetch historical data
+            today = datetime.now()
+            start_date = today - timedelta(days=days+period)
+            
+            ticker = MarketData._get_ticker(symbol)
+            df = ticker.history(start=start_date, end=today)
+            
+            if df.empty:
+                raise ValueError(f"No data available for symbol {symbol}")
+            
+            # Calculate middle band (SMA)
+            middle_band = df['Close'].rolling(window=period).mean()
+            
+            # Calculate standard deviation
+            std = df['Close'].rolling(window=period).std()
+            
+            # Calculate upper and lower bands
+            upper_band = middle_band + (std * std_dev)
+            lower_band = middle_band - (std * std_dev)
+            
+            return upper_band, middle_band, lower_band
+            
+        except Exception as e:
+            raise Exception(f"Error calculating Bollinger Bands for {symbol}: {str(e)}")
+    
+    @staticmethod
+    def get_bollinger_band_position(current_price: float, upper_band: float, 
+                                   middle_band: float, lower_band: float) -> str:
+        """
+        Determine position relative to Bollinger Bands.
+        """
+        if current_price > upper_band:
+            return "超买区 🔥"
+        elif current_price < lower_band:
+            return "超卖区 🧊"
+        elif current_price > middle_band:
+            return "中轨上方 📈"
+        else:
+            return "中轨下方 📉"
