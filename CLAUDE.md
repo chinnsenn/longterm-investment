@@ -10,6 +10,9 @@ MarketFlow is a sophisticated quantitative trading system that implements an ada
 
 ### Running the Application
 ```bash
+# Activate virtual environment first
+source .venv/bin/activate
+
 # Run the main application
 python main.py
 
@@ -18,7 +21,7 @@ python main.py --debug
 ```
 
 ### Docker Development
-The project uses UV for optimized Docker builds with faster dependency installation.
+The project uses standard pip for dependency management in Docker with multi-stage builds for optimized images.
 
 ```bash
 # Build Docker image (production)
@@ -37,20 +40,20 @@ docker compose logs -f                  # View logs
 docker compose down                     # Stop
 ```
 
-#### UV Docker Benefits
-- Multi-stage builds with optimized layers
-- UV cache persistence for faster builds
-- Separate development and production targets
-- Up to 80x faster dependency resolution in CI/CD
-
 ### Dependency Management
 
-#### Using UV (Recommended)
+#### Using UV venv (Recommended)
 UV provides up to 80x faster dependency resolution and installation.
 
 ```bash
 # Install UV (one-time setup)
 curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Create virtual environment with UV
+uv venv
+
+# Activate virtual environment
+source .venv/bin/activate
 
 # Install dependencies with UV
 uv pip install -e .
@@ -58,17 +61,20 @@ uv pip install -e .
 # Install with development dependencies
 uv pip install -e ".[dev]"
 
-# Run the application without activating venv
-uv run python main.py
+# Run the application
+python main.py
+
+# Run with development logging
+python main.py --debug
 
 # Update specific dependencies
 uv pip install --upgrade yfinance>=0.2.54
 
-# Run the application without activating venv
-uv run python main.py
+# Add new dependencies
+uv add <package-name>
 
-# Run with development logging
-uv run python main.py --debug
+# Remove dependencies
+uv remove <package-name>
 ```
 
 #### Using pip (Traditional)
@@ -84,14 +90,37 @@ pip install --upgrade yfinance>=0.2.54
 ```
 
 ### Testing
-The project uses pytest for testing (though test files are currently not visible in the repository). Coverage reports indicate approximately 50% test coverage across core modules.
+The project uses pytest for testing with coverage reports.
 
 ```bash
-# Run tests (when tests directory is present)
+# Activate virtual environment first
+source .venv/bin/activate
+
+# Run tests
 pytest
 
 # Run with coverage
 pytest --cov=marketflow --cov-report=html
+```
+
+### Code Quality
+The project uses Black for code formatting, Ruff for linting, and MyPy for type checking.
+
+```bash
+# Activate virtual environment first
+source .venv/bin/activate
+
+# Format code with Black
+black .
+
+# Lint with Ruff
+ruff check .
+
+# Auto-fix linting issues
+ruff check . --fix
+
+# Type checking with MyPy
+mypy .
 ```
 
 ## Architecture Overview
@@ -243,7 +272,7 @@ The `.env` file controls:
 - Main application code in `marketflow/` directory with clear module separation
 - Configuration via `.env` (template in `.env.example`)
 - Modern Python packaging with `pyproject.toml` for UV/pip compatibility
-- Docker deployment ready with UV-optimized multi-stage builds
+- Docker deployment ready with multi-stage builds
 - Direct execution with UV for easy development and production deployment
 - Data persistence in SQLite database (default: `data/investment.db`)
 - Logs directory with proper permissions and volume mounting for Docker

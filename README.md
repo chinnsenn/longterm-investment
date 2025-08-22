@@ -24,7 +24,7 @@ A sophisticated market trend following trading system that implements an adaptiv
 
 ## Installation
 
-### Option 1: Using UV (Recommended)
+### Option 1: Using UV venv (Recommended)
 
 UV is an extremely fast Python package manager that provides up to 80x faster dependency resolution.
 
@@ -39,22 +39,58 @@ git clone git@github.com:chinnsenn/longterm-investment.git
 cd longterm-investment
 ```
 
-3. Copy and configure environment variables:
+3. Create virtual environment with UV:
+```bash
+uv venv
+```
+
+4. Activate virtual environment and install dependencies:
+```bash
+source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
+uv pip install -e .
+```
+
+5. Copy and configure environment variables:
 ```bash
 cp .env.example .env
 # Edit .env with your settings
 ```
 
-4. Run with UV (automatically creates virtual environment and installs dependencies):
+6. Run the application:
 ```bash
 # Production mode
-uv run python main.py
+python main.py
 
 # Development mode
-uv run python main.py --debug
+python main.py --debug
 ```
 
 ### Option 2: Using pip (Traditional)
+
+1. Clone the repository:
+```bash
+git clone git@github.com:chinnsenn/longterm-investment.git
+cd longterm-investment
+```
+
+2. Create virtual environment with UV:
+```bash
+uv venv
+```
+
+3. Activate virtual environment and install dependencies:
+```bash
+source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
+uv pip install -e .
+```
+
+4. Copy and configure environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your settings
+```
+
+### Option 3: Not recommended (Legacy pip)
 
 1. Clone the repository:
 ```bash
@@ -81,21 +117,24 @@ cp .env.example .env
 
 ## Usage
 
-### Using UV (Recommended)
-```bash
-# Run in production mode
-uv run python main.py
-
-# Run in development mode with debug logging
-uv run python main.py --debug
-```
-
-### Using Traditional pip
+### Using UV venv (Recommended)
 ```bash
 # Activate virtual environment first
 source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
 
-# Run the application
+# Run application
+python main.py
+
+# Run with debug logging
+python main.py --debug
+```
+
+### Using pip (Traditional)
+```bash
+# Activate virtual environment first
+source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
+
+# Run application
 python main.py
 
 # Run with debug logging

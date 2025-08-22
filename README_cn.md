@@ -24,7 +24,7 @@
 
 ## 安装
 
-### 方式 1：使用 UV（推荐）
+### 方式 1：使用 UV venv（推荐）
 
 UV 是一个极速的 Python 包管理器，依赖解析速度比 pip 快 80 倍。
 
@@ -39,19 +39,30 @@ git clone git@github.com:chinnsenn/longterm-investment.git
 cd longterm-investment
 ```
 
-3. 复制并配置环境变量：
+3. 创建 UV 虚拟环境：
+```bash
+uv venv
+```
+
+4. 激活虚拟环境并安装依赖：
+```bash
+source .venv/bin/activate  # Windows 使用: .venv\Scripts\activate
+uv pip install -e .
+```
+
+5. 复制并配置环境变量：
 ```bash
 cp .env.example .env
 # 编辑 .env 文件设置你的配置
 ```
 
-4. 使用 UV 运行（自动创建虚拟环境并安装依赖）：
+6. 运行应用：
 ```bash
 # 生产模式
-uv run python main.py
+python main.py
 
 # 开发模式
-uv run python main.py --debug
+python main.py --debug
 ```
 
 ### 方式 2：使用 pip（传统方式）
@@ -81,13 +92,16 @@ cp .env.example .env
 
 ## 使用方法
 
-### 使用 UV（推荐）
+### 使用 UV venv（推荐）
 ```bash
-# 生产模式运行
-uv run python main.py
+# 先激活虚拟环境
+source .venv/bin/activate  # Windows 使用: .venv\Scripts\activate
 
-# 开发模式运行（包含调试日志）
-uv run python main.py --debug
+# 运行应用
+python main.py
+
+# 带调试日志运行
+python main.py --debug
 ```
 
 ### 使用传统 pip
